@@ -1,0 +1,50 @@
+<html>
+  <head>
+    <title>Bank Options</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+        margin: 0;
+        padding: 20px;
+      }
+      h1 {
+        color: #333333;
+      }
+      ul {
+        list-style-type: none;
+        padding: 0;
+      }
+      label {
+        display: block;
+        margin-bottom: 10px;
+      }
+      input[type="text"] {
+        padding: 5px;
+        width: 200px;
+      }
+      input[type="submit"] {
+        padding: 10px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Bank Options</h1>
+    <ul>
+      Current Balance: [currentBalance] [currentSocket]
+    </ul>
+    <form method="POST" action="/deposit">
+      <label for="amount">Deposit money:</label>
+      <input type="text" id="amount" name="amount" />
+      <input type="submit" value="Deposit" />
+    </form>
+    <form method="POST" action="/withdraw">
+      <label for="amount">Withdraw money:</label>
+      <input type="text" id="amount" name="amount" />
+      <input type="submit" value="Withdraw" />
+    </form>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="thrift-jars.0">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/src/main/java/vs/lib/thrift-jars.0.12" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="file://$PROJECT_DIR$/src/main/java/vs/lib/thrift-jars.0.12" recursive="false" />
+  </library>
+</component>

@@ -1,0 +1,182 @@
+#Contains 1 bank and 1 stock markets
+version: "3"
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    ports:
+      - 1883:1883
+      - 9002:9001
+    restart: always
+    networks:
+      - vs_network
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  bank1:
+    image: "vs-ss23/bank"
+    container_name: "Sparkasse"
+    build:
+      context: ./bank
+      dockerfile: Dockerfile
+    networks:
+      - vs_network
+    ports:
+      - 4321:4321
+      - 9090:9090
+      - 1882:1883
+    environment:
+      - ID=bank1
+      - BANK_NAME=Sparkasse
+      - STOCK_NAMES=LSFT,LESLA,LOTIFY,BSFT,BESLA,BOTIFY
+      - STOCKS_QUANTITIY=100
+      - MINIMUM_THRESHOLD=20000 # Bankrupcy Threshold
+      - HELP_THRESHOLD=45000 #Minimum balance threshold for assistance
+      - PACKETS_NUM=20
+      - TIMEOUT=20000
+      - TCP_PORT=4321
+      - RPC_PORT=9090
+      - HTTP_LOCK=0
+      - RPC_MODE=server
+      - RPC_WAIT_TIME=0
+      - WAIT_BEFORE_RESULT=10000
+      - BROKER_ADDRESS=mosquitto
+      - BROKER_PORT=1883
+      - TOPICS=balance,assistance,vote
+      - MQTT_MODE=CO #Coordinator
+      - MQTT_WAIT=2000
+      - MQTT_MEMBERS_NUM=3
+
+  bank2:
+    image: "vs-ss23/bank"
+    container_name: "Volksbank"
+    build:
+      context: ./bank
+      dockerfile: Dockerfile
+    networks:
+      - vs_network
+    environment:
+      - ID=bank2
+      - BANK_NAME=Volksbank
+      - STOCK_NAMES=LSFT,LESLA,LOTIFY,BSFT,BESLA,BOTIFY
+      - STOCKS_QUANTITIY=100
+      - MINIMUM_THRESHOLD=20000 # Bankrupcy Threshold
+      - HELP_THRESHOLD=45000 #Minimum balance threshold for assistance
+      - PACKETS_NUM=20
+      - TIMEOUT=20000
+      - TCP_PORT=4321
+      - RPC_PORT=9090
+      - RPC_MODE=client
+      - RPC_WAIT_TIME=100
+      - SERVER_ADDRESS=bank1
+      - WAIT_BEFORE_RESULT=10000
+      - BROKER_ADDRESS=mosquitto
+      - BROKER_PORT=1883
+      - TOPICS=balance,assistance
+      - MQTT_MODE=PA #Participant
+      - MQTT_WAIT=2000
+      - MQTT_MEMBERS_NUM=3
+
+    command: java -jar /app/bank-1.0-SNAPSHOT.jar
+
+  bank3:
+    image: "vs-ss23/bank"
+    container_name: "ING"
+    build:
+      context: ./bank
+      dockerfile: Dockerfile
+    networks:
+      - vs_network
+    environment:
+      - ID=bank3
+      - BANK_NAME=ING
+      - STOCK_NAMES=LSFT,LESLA,LOTIFY,BSFT,BESLA,BOTIFY
+      - STOCKS_QUANTITIY=100
+      - MINIMUM_THRESHOLD=20000 # Bankrupcy Threshold
+      - HELP_THRESHOLD=45000 #Minimum balance threshold for assistance
+      - PACKETS_NUM=20
+      - TIMEOUT=20000
+      - TCP_PORT=4321
+      - RPC_PORT=9090
+      - RPC_MODE=client
+      - RPC_WAIT_TIME=100
+      - SERVER_ADDRESS=bank1
+      - WAIT_BEFORE_RESULT=10000
+      - BROKER_ADDRESS=mosquitto
+      - BROKER_PORT=1883
+      - TOPICS=balance,assistance
+      - MQTT_MODE=PA #Participant
+      - MQTT_WAIT=2000
+      - MQTT_MEMBERS_NUM=3
+
+  bank4:
+    image: "vs-ss23/bank"
+    container_name: "N26"
+    build:
+      context: ./bank
+      dockerfile: Dockerfile
+    networks:
+      - vs_network
+    environment:
+      - ID=bank4
+      - BANK_NAME=N26
+      - STOCK_NAMES=LSFT,LESLA,LOTIFY,BSFT,BESLA,BOTIFY
+      - STOCKS_QUANTITIY=5
+      - MINIMUM_THRESHOLD=20000 # Bankrupcy Threshold
+      - HELP_THRESHOLD=45000 #Minimum balance threshold for assistance
+      - PACKETS_NUM=20
+      - TIMEOUT=20000
+      - TCP_PORT=4321
+      - RPC_PORT=9090
+      - RPC_MODE=client
+      - RPC_WAIT_TIME=100
+      - SERVER_ADDRESS=bank1
+      - WAIT_BEFORE_RESULT=10000
+      - BROKER_ADDRESS=mosquitto
+      - BROKER_PORT=1883
+      - TOPICS=balance,assistance
+      - MQTT_MODE=PA #Participant
+      - MQTT_WAIT=2000
+      - MQTT_MEMBERS_NUM=3
+
+    command: java -jar /app/bank-1.0-SNAPSHOT.jar
+
+  client1:
+    image: "vs-ss23/stock-market"
+    container_name: LilliputSE
+    build:
+      context: ./stock-market
+      dockerfile: Dockerfile
+    networks:
+      - vs_network
+    environment:
+      - STOCKMARKET_NAME:${HOSTNAME}
+      - BANK_IPS=bank1,bank2,bank3,bank4 #names of services to send udp packets to
+      - BANK_PORT=6543
+      - SERVER_ADDRESS=localhost
+      - STOCK_NAMES=LSFT,LESLA,LOTIFY
+      - CHANGES_NUM=20 # Number of stock value changes
+      - REPETITION=1 # Number of times to send each stock change
+      - FIRST_WAIT=1000
+      - WAITING_TIME=2000 # Waiting between each UDP message
+
+  httpClient:
+    image: "vs-ss23/user"
+    container_name: Employee
+    build:
+      context: ./user
+      dockerfile: Dockerfile
+    networks:
+      - vs_network
+    environment:
+      - SERVER_ADDRESS=bank1
+      - SERVER_PORT=4321
+      - NUM_REQUESTS=10
+      - ACCOUNT=user01
+      - FIRST_WAIT=2000
+      - WAITING_TIME=200 #Waiting between each TCP message
+      - WAIT_BEFORE_RESULT=10000
+
+networks:
+  vs_network:

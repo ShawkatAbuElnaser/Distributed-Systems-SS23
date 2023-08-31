@@ -1,0 +1,106 @@
+#Contains 3 banks and 2 stock markets
+version: "3"
+
+services:
+  server1:
+    image: "vs-ss23/bank"
+    container_name: "Sparkasse"
+    build:
+      context: ./bank
+      dockerfile: Dockerfile
+    networks:
+      - vs_network
+    environment:
+      - STOCK_NAMES=LSFT,LESLA,LOTIFY,BSFT,BESLA,BOTIFY
+      - BANK_NAME:${HOSTNAME}
+      - PACKETS_NUM=2000
+    command:
+      [
+        "sh",
+        "-c",
+        "java -jar /app/bank-1.0-SNAPSHOT.jar && cat udpPerformance.txt",
+      ]
+
+  server2:
+    image: "vs-ss23/bank"
+    container_name: "Volksbank"
+    build:
+      context: ./bank
+      dockerfile: Dockerfile
+    networks:
+      - vs_network
+    environment:
+      - STOCK_NAMES=LSFT,LESLA,LOTIFY,BSFT,BESLA,BOTIFY
+      - BANK_NAME:${HOSTNAME}
+      - PACKETS_NUM=2000
+      - TCP_PORT=4321
+
+    command: java -jar /app/bank-1.0-SNAPSHOT.jar
+
+  server3:
+    image: "vs-ss23/bank"
+    container_name: "ING"
+    build:
+      context: ./bank
+      dockerfile: Dockerfile
+    networks:
+      - vs_network
+    environment:
+      - STOCK_NAMES=LSFT,LESLA,LOTIFY,BSFT,BESLA,BOTIFY
+      - BANK_NAME:${HOSTNAME}
+      - PACKETS_NUM=2000
+      - TCP_PORT=4321
+
+    command: java -jar /app/bank-1.0-SNAPSHOT.jar
+
+  client1:
+    image: "vs-ss23/stock-market"
+    container_name: LilliputSE
+    build:
+      context: ./stock-market
+      dockerfile: Dockerfile
+    networks:
+      - vs_network
+    environment:
+      - STOCKMARKET_NAME:${HOSTNAME}
+      - BANK_IPS=server1,server2,server3
+      - BANK_PORT=6543
+      - STOCK_NAMES=LSFT,LESLA,LOTIFY
+      - CHANGES_NUM=1000 # Number of stock value changes
+      - REPETITION=1 # Number of times to send each stock change
+      - WAITING_TIME=10
+
+  client2:
+    image: "vs-ss23/stock-market"
+    container_name: BlefuscuSE
+    build:
+      context: ./stock-market
+      dockerfile: Dockerfile
+    networks:
+      - vs_network
+    environment:
+      - STOCKMARKET_NAME:${HOSTNAME}
+      - BANK_IPS=server1,server2,server3
+      - BANK_PORT=6543
+      - STOCK_NAMES=BSFT,BESLA,BOTIFY
+      - CHANGES_NUM=1000
+      - REPETITION=1
+      - WAITING_TIME=30
+
+    httpClient:
+      image: "vs-ss23/user"
+      container_name: Employee
+      build:
+        context: ./user
+        dockerfile: Dockerfile
+      networks:
+        - vs_network
+      environment:
+        - SERVER_ADDRESS=server1
+        - SERVER_PORT=4321
+        - NUM_REQUESTS=1000
+        - ACCOUNT=user01
+        - WAITING_TIME=1000
+
+networks:
+  vs_network:
