@@ -16,7 +16,7 @@ services:
 
   bank1:
     image: "vs-ss23/bank"
-    container_name: "Sparkasse"
+    container_name: "Gringotts-Global-Trust"
     build:
       context: ./bank
       dockerfile: Dockerfile
@@ -50,7 +50,7 @@ services:
 
   bank2:
     image: "vs-ss23/bank"
-    container_name: "Volksbank"
+    container_name: "Goliath-National-Finance"
     build:
       context: ./bank
       dockerfile: Dockerfile
@@ -82,7 +82,7 @@ services:
 
   bank3:
     image: "vs-ss23/bank"
-    container_name: "ING"
+    container_name: "Dunder-Mifflin-Financial"
     build:
       context: ./bank
       dockerfile: Dockerfile
@@ -112,7 +112,7 @@ services:
 
   bank4:
     image: "vs-ss23/bank"
-    container_name: "N26"
+    container_name: "Azkaban-Financial-Group"
     build:
       context: ./bank
       dockerfile: Dockerfile
